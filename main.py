@@ -1,14 +1,12 @@
 import cv2
 import pandas as pd
 from ultralytics import YOLO
-from tracker import*
 import cvzone
 import numpy as np
-from vidgear.gears import CamGear
 
 model=YOLO('yolov8s.pt')
 
-stream = CamGear(source='https://www.youtube.com/watch?v=SvldnZ6qMGU', stream_mode = True, logging=True).start() # YouTube Video URL as input
+
 
 
 def RGB(event, x, y, flags, param):
@@ -29,45 +27,25 @@ class_list = data.split("\n")
 #print(class_list)
 
 count=0
-cy1=424
 
-
-tracker1=Tracker()
-tracker2=Tracker()
-tracker3=Tracker()
-
-
-
-counter1=[]
-counter2=[]
-counter3=[]
-offset=6
-area1=[(197,222),(170,239),(552,270),(545,236)]
 while True:    
-#    ret,frame = cap.read()
-    frame = stream.read()
-#    if not ret:
-#        break
+    ret,frame = cap.read()
+    
+    if not ret:
+        break
 
     count += 1
     if count % 3 != 0:
         continue
     
     frame=cv2.resize(frame,(1020,500))
-   
-
     results=model.predict(frame)
  #   print(results)
     a=results[0].boxes.data
     print(a)
     px=pd.DataFrame(a).astype("float")
 #    print(px)
-    list1=[]
-    motorcycle=[]
-    list2=[]
-    car=[]
-    list3=[]
-    truck=[]
+  
     for index,row in px.iterrows():
 #        print(row)
  
@@ -77,17 +55,12 @@ while True:
         y2=int(row[3])
         d=int(row[5])
         c=class_list[d]
-        cx=int(x1+x2)//2
-        cy=int(y1+y2)//2
-        if 'person' in c:
-            cv2.circle(frame,(cx,cy),4,(0,0,255),-1)
-#            cv2.rectangle(frame,(x1,y1),(x2,y2),(0,0,255),1)
+        cv2.rectangle(frame,(x1,y1),(x2,y2),(0,0,255),1)
 #            cvzone.putTextRect(frame,f'{c}',(x2,y2),1,1)
 
     cv2.imshow("RGB", frame)
     if cv2.waitKey(1)&0xFF==27:
         break
 
-#cap.release()
+cap.release()
 cv2.destroyAllWindows()
-stream.stop()
